@@ -22,7 +22,9 @@ import utility
 from model.ognidc import OGNIDC
 
 from summary.gcsummary import OGNIDCSummary
+from summary.gcsummarynew import OGNIDCSummarynew
 from metric.dcmetric import DCMetric
+from metric.dcmetricnew import DCMetricnew
 from data import get as get_data
 from loss.sequentialloss import SequentialLoss
 
@@ -33,6 +35,7 @@ import torch.distributed as dist
 import apex
 from apex.parallel import DistributedDataParallel as DDP
 from apex import amp
+from data.noisydataset import NoisyDataset
 # from torch.nn.parallel import DistributedDataParallel as DDP
 # import torch.cuda.amp as amp
 torch.backends.cudnn.deterministic = True
@@ -354,13 +357,15 @@ def test(args):
     data = get_data(args)
 
     data_test = data(args, 'test')
-
+    
+    
     loader_test = DataLoader(dataset=data_test, batch_size=1,
                              shuffle=False, num_workers=args.num_threads)
 
     if args.model == 'OGNIDC':
         loss = SequentialLoss(args)
-        summ = OGNIDCSummary
+        #summ = OGNIDCSummary
+        summ_new = OGNIDCSummarynew
     else:
         raise NotImplementedError
 
@@ -390,7 +395,8 @@ def test(args):
 
     net = nn.DataParallel(net)
 
-    metric = DCMetric(args)
+    #metric = DCMetric(args)
+    metric_new = DCMetricnew(args)
 
     try:
         os.makedirs(args.save_dir, exist_ok=True)
@@ -398,7 +404,8 @@ def test(args):
     except OSError:
         pass
 
-    writer_test = summ(args.save_dir, 'test', args, None, metric.metric_name)
+    #writer_test = summ(args.save_dir, 'test', args, None, metric.metric_name)
+    writer_test_new = summ_new(args.save_dir, 'test', args, None, metric_new.metric_name)
 
     net.eval()
 
@@ -431,12 +438,16 @@ def test(args):
 
             output['pred'] = (pred_flip_back + output['pred']) / 2.0
 
-        metric_val = metric.evaluate(sample, output, 'test')
+        #metric_val = metric.evaluate(sample, output, 'test')
+        metric_val_new = metric_new.evaluate(sample, output, 'test')
 
-        writer_test.add(None, metric_val)
+        #writer_test.add(None, metric_val)
+        writer_test_new.add(None, metric_val_new)
 
         # # Save data for analysis
-        writer_test.save(args.epochs, batch, sample, output)
+        #writer_test.save(args.epochs, batch, sample, output)   # no using this format
+        if args.save_result_only:
+            writer_test_new.save(args.epochs, batch, sample, output)
 
         current_time = time.strftime('%y%m%d@%H:%M:%S')
         error_str = '{} | Test'.format(current_time)
@@ -446,7 +457,8 @@ def test(args):
 
     pbar.close()
 
-    writer_test.update(args.epochs, sample, output)
+    #writer_test.update(args.epochs, sample, output)
+    writer_test_new.update(args.epochs, sample, output)
 
     t_avg = t_total / num_sample
     print('Elapsed time : {} sec, '

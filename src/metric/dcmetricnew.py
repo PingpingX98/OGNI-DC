@@ -1,9 +1,9 @@
 import torch
 from . import BaseMetric
 
-class DCMetric(BaseMetric):
+class DCMetricnew(BaseMetric):
     def __init__(self, args):
-        super(DCMetric, self).__init__(args)
+        super(DCMetricnew, self).__init__(args)
 
         self.args = args
         self.t_valid = 0.0001
@@ -12,8 +12,11 @@ class DCMetric(BaseMetric):
             'RMSE', 'MAE', 'iRMSE', 'iMAE', 'REL', 'D^1', 'D^2', 'D^3', 'D102', 'D105', 'D110'
         ]
         '''
-        self.metric_name = [
+        """ self.metric_name = [
             'RMSE', 'MAE', 'iRMSE', 'iMAE', 'REL', 'D^1', 'D^2', 'D^3'
+        ] """
+        self.metric_name = [
+            'RMSE', 'MAE', 'iRMSE', 'iMAE', 'REL', 'D_1'
         ]
 
     def evaluate(self, sample, output, mode=None):
@@ -66,25 +69,25 @@ class DCMetric(BaseMetric):
             r2 = pred / (gt + 1e-8)
             ratio = torch.max(r1, r2)
 
-            del_1 = (ratio < 1.25).type_as(ratio)
-            del_2 = (ratio < 1.25**2).type_as(ratio)
-            del_3 = (ratio < 1.25**3).type_as(ratio)
+            del_1 = (ratio < 1.1).type_as(ratio)
+            """ del_2 = (ratio < 1.25**2).type_as(ratio)
+            del_3 = (ratio < 1.25**3).type_as(ratio) """
             '''
             del_102 = (ratio < 1.02).type_as(ratio)
             del_105 = (ratio < 1.05).type_as(ratio)
             del_110 = (ratio < 1.10).type_as(ratio)
             '''
             del_1 = del_1.sum() / (num_valid + 1e-8)
-            del_2 = del_2.sum() / (num_valid + 1e-8)
-            del_3 = del_3.sum() / (num_valid + 1e-8)
+            """ del_2 = del_2.sum() / (num_valid + 1e-8)
+            del_3 = del_3.sum() / (num_valid + 1e-8) """
             '''
             del_102 = del_102.sum() / (num_valid + 1e-8)
             del_105 = del_105.sum() / (num_valid + 1e-8)
             del_110 = del_110.sum() / (num_valid + 1e-8)
             '''
-
             #result = [rmse, mae, irmse, imae, rel, del_1, del_2, del_3, del_102, del_105, del_110]
-            result = [rmse, mae, irmse, imae, rel, del_1, del_2, del_3]
+            # result = [rmse, mae, irmse, imae, rel, del_1, del_2, del_3]
+            result = [rmse, mae, irmse, imae, rel, del_1]
             result = torch.stack(result)
             result = torch.unsqueeze(result, dim=0).detach()
 

@@ -232,9 +232,15 @@ class KITTIDC(BaseDataset):
             gt = TF.to_tensor(np.array(gt))
 
         # print('dataloader', torch.max(gt[gt>0.0]), torch.min(gt[gt>0.0]))
-
+        Km = np.eye(3)
+        Km[0, 0] = K[0]
+        Km[1, 1] = K[1]
+        Km[0, 2] = K[2]
+        Km[1, 2] = K[3]
+        K = Km
+        #print(f"the shape of K in getitem is : {torch.Tensor(K).shape}")
         output = {'rgb': rgb, 'dep': depth, 'gt': gt, 'K': torch.Tensor(K)}
-
+        
         return output
 
     def _load_data(self, idx):
@@ -263,7 +269,7 @@ class KITTIDC(BaseDataset):
             f_calib.close()
             K = [float(K_cam[0]), float(K_cam[4]), float(K_cam[2]),
                  float(K_cam[5])]
-
+        # print(f"the shape of K in load_data is : {torch.Tensor(K).shape}")
         # modify here to mimic various lidar lines, such as [0, 1/16, 1/4, 1/1] -> [0, 4, 16, 64]Lines
         keep_ratio = (self.lidar_lines / 64.0)
         assert keep_ratio >=0 and keep_ratio <= 1.0, keep_ratio
@@ -275,6 +281,7 @@ class KITTIDC(BaseDataset):
             Km[1, 1] = K[1]
             Km[0, 2] = K[2]
             Km[1, 2] = K[3]
+            
             depth = sample_lidar_lines(depth[:, :, None], intrinsics=Km, keep_ratio=keep_ratio)[:, :, 0]
         else:
             depth = np.zeros_like(depth)
@@ -288,8 +295,10 @@ class KITTIDC(BaseDataset):
         w3, h3 = gt.size
 
         assert w1 == w2 and w1 == w3 and h1 == h2 and h1 == h3
-
+        
         return rgb, depth, gt, K
+    
+    
 
 def sample_lidar_lines(
     depth_map: np.ndarray, intrinsics: np.ndarray, keep_ratio: float = 1.0

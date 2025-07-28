@@ -6,7 +6,7 @@ depth_downsample_method='min'
 pred_confidence_input=1
 
 
-ckpt=../checkpoints/KITTI_generalization.pt
+ckpt=/home/descfly/Projects/OGNI-DC/src/checkpoints/KITTI_generalization.pt
 
 # for lidar_lines in 8 16 32 64
 for lidar_lines in 64

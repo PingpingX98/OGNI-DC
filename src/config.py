@@ -329,7 +329,7 @@ parser.add_argument('--save_pointcloud_visualization',
 # noise
 parser.add_argument('--add_noise',
                      action='store_true', 
-                     default=True
+                     default=True,
                      help='Add noise to sparse depth')
 parser.add_argument('--noise_type', 
                     default='gaussian', 

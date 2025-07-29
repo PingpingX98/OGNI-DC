@@ -35,7 +35,7 @@ import torch.distributed as dist
 import apex
 from apex.parallel import DistributedDataParallel as DDP
 from apex import amp
-from data.noisydataset import NoisyDataset
+from data.noisydata import NoisyDataset
 # from torch.nn.parallel import DistributedDataParallel as DDP
 # import torch.cuda.amp as amp
 torch.backends.cudnn.deterministic = True

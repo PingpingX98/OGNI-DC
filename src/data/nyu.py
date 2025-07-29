@@ -25,7 +25,7 @@ from PIL import Image
 import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
-
+from noisydata import add_noise
 warnings.filterwarnings("ignore", category=UserWarning)
 
 """
@@ -158,7 +158,10 @@ class NYU(BaseDataset):
             K = self.K.clone()
 
         dep_sp = self.get_sparse_depth(dep, self.args.num_sample)
-
+        if self.args.add_noise:
+            dep_sp, noise_info = add_noise(dep_sp, noise_type=self.args.noise_type)
+        else:
+            noise_info = None
         output = {'rgb': rgb, 'dep': dep_sp, 'gt': dep, 'K': K}
 
         return output

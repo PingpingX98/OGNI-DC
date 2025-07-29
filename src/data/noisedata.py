@@ -17,7 +17,7 @@ def add_noise(x, noise_type='gaussian', mask=None):
     elif noise_type == 'impulse':
         prob = random.uniform(0.01, 0.05)
         x_noisy = x.clone()
-        max_dep = 80.0
+        max_dep = 10.0
         rand = torch.rand_like(x_noisy)
         max_mask = (rand > 1 - (prob / 2)) & mask
         zero_mask = (rand < (prob / 2)) & mask

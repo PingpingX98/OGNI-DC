@@ -25,7 +25,7 @@ from PIL import Image
 import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
-from .noisydata import add_noise
+from .noisedata import add_noise
 warnings.filterwarnings("ignore", category=UserWarning)
 
 """

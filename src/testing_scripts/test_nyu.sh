@@ -12,7 +12,7 @@ ckpt=/home/descfly/Projects/OGNI-DC-main/src/checkpoints/NYU_best_performance.pt
 for sample in 500
 
 do
-python main.py --dir_data /home/descfly/data/nyudepthv2 --data_name NYU --split_json ../data_json/nyu.json \
+python main_memory.py --dir_data /home/descfly/data/nyudepthv2 --data_name NYU --split_json ../data_json/nyu.json \
     --gpus 0 --max_depth 10.0 --num_sample $sample \
     --GRU_iters $GRU_iters --optim_layer_input_clamp $optim_layer_input_clamp --depth_activation_format $depth_activation_format \
     --test_only --test_augment $test_augment --pretrain $ckpt \

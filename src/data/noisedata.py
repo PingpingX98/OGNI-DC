@@ -56,3 +56,42 @@ def add_noise(x, noise_type='gaussian', mask=None):
 
     else:
         raise ValueError(f"Unsupported noise type: {noise_type}")
+
+def diff_level_noise(x, mask=None, noise_level=1, seed=None):
+    import random
+    if mask is None:
+        mask = x > 0
+# print(f"noise level is {noise_level}")
+    if seed is None:
+        seed = int(noise_level * 1000)
+    random.seed(seed)
+    torch.manual_seed(seed)
+
+    low = -noise_level
+    high = noise_level
+
+    uniform_noise = torch.empty_like(x).uniform_(low, high)
+    x_noisy = x.clone()
+    x_noisy[mask] = x[mask] + uniform_noise[mask]
+
+    return x_noisy
+
+
+def diff_level_noise_mul(x, mask=None, noise_level=1, seed=None):
+    import random
+    if mask is None:
+        mask = x > 0
+# print(f"noise level is {noise_level}")
+    if seed is None:
+        seed = int(noise_level * 1000)
+    random.seed(seed)
+    torch.manual_seed(seed)
+
+    low = -noise_level
+    high = noise_level
+
+    uniform_noise = torch.empty_like(x).uniform_(low, high)
+    x_noisy = x.clone()
+    x_noisy[mask] = x[mask] * (1 + uniform_noise[mask])
+
+    return x_noisy

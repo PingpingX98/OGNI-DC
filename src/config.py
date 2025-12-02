@@ -329,12 +329,16 @@ parser.add_argument('--save_pointcloud_visualization',
 # noise
 parser.add_argument('--add_noise',
                      action='store_true', 
-                     default=True,
+                     default=False,
                      help='Add noise to sparse depth')
 parser.add_argument('--noise_type', 
                     default='gaussian', 
                     choices=['gaussian', 'impulse', 'rayleigh', 'gamma', 'exponential', 'uniform'], 
                     help='Type of noise to add')
+parser.add_argument('--noise_level', 
+                    type=float,
+                    default=1,
+                    help='Add noise to sparse depth')
 
 args = parser.parse_args()
 args.num_gpus = len(args.gpus.split(','))

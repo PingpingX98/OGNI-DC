@@ -136,18 +136,24 @@ def test(args):
     times = []
     init_seed()
     for batch, sample in enumerate(loader_test):
+        torch.cuda.reset_max_memory_allocated(device=0)
+        peak_memory = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
+        print(f"Peak memory: {peak_memory:.3f} GB")
         sample = {key: val.cuda() for key, val in sample.items()
                   if val is not None}
-        torch.cuda.reset_max_memory_allocated(device=0)
+        print(sample['rgb'].shape)
         timer = benchmark.Timer(
             stmt='net(sample)',
             globals={'net': net, 'sample': sample}
         )
         
-        measured_time = timer.timeit(1000).mean
+        # measured_time = timer.timeit(1000).mean
+        print(timer.timeit(100))
+        output = net(sample)
         break
     peak_memory = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
-    print(f"[Batch {batch}] Inference time: {measured_time:.6f}s | Peak memory: {peak_memory:.3f} GB")
+    # print(f"[Batch {batch}] Inference time: {measured_time:.6f}s | Peak memory: {peak_memory:.3f} GB")
+    print(f"Peak memory: {peak_memory:.3f} GB")
     model = net.module if isinstance(net, torch.nn.DataParallel) else net
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Number of trainable parameters: {trainable_params}")

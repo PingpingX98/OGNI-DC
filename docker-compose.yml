@@ -1,0 +1,30 @@
+services:
+  ognidc:
+    image: cf
+    shm_size: '64gb'
+    stdin_open: true
+    tty: true
+    network_mode: "host"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: ["bash", "-l"]
+#    ports:
+#      - 6006:6006
+    environment:
+    - DISPLAY=${DISPLAY}
+    - QT_X11_NO_MITSHM=1
+    - XDG_RUNTIME_DIR=/tmp/runtime-root
+    - NVIDIA_VISIBLE_DEVICES=all
+    - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - ./:/root/ognidc
+      - /mnt/data/nyudepthv2:/root/ognidc/datas/nyudepthv2
+      - /mnt/checkpoints/ognidc:/root/ognidc/checkpoints
+      # - /home/jie/data/NYUV2_depth/nyudepthv2:/root/NEAT/datas/nyudepthv2
+    working_dir: /root/ognidc
+

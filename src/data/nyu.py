@@ -64,10 +64,10 @@ class NYU(BaseDataset):
             raise NotImplementedError
 
         # For NYUDepthV2, crop size is fixed
-        # height, width = (240, 320)
-        height, width = (256, 320)
-        # crop_size = (228, 304)
-        crop_size = (256, 320)
+        height, width = (240, 320)
+        # height, width = (256, 320)
+        crop_size = (228, 304)
+        # crop_size = (256, 320)
 
         self.height = height
         self.width = width

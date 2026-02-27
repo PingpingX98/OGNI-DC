@@ -20,10 +20,13 @@ ckpt=../checkpoints/NYU_best_performance.pt
 #    --save_result_only
 #    # --save 'nyu_1.10' \
 #done
-python main.py --dir_data ../datas/nyudepthv2 --data_name NYU --split_json ../data_json/nyu.json \
-    --gpus 0 --max_depth 10.0 --num_sample 500 \
-    --GRU_iters $GRU_iters --optim_layer_input_clamp $optim_layer_input_clamp --depth_activation_format $depth_activation_format \
-    --test_only --test_augment $test_augment --pretrain $ckpt \
-    --log_dir ../experiments/ \
-    --save "test_nyu" \
-    --save_result_only
+for sample in 1 5
+do
+    python main.py --dir_data ../datas/nyudepthv2 --data_name NYU --split_json ../data_json/nyu.json \
+        --gpus 0 --max_depth 10.0 --num_sample $sample \
+        --GRU_iters $GRU_iters --optim_layer_input_clamp $optim_layer_input_clamp --depth_activation_format $depth_activation_format \
+        --test_only --test_augment $test_augment --pretrain $ckpt \
+        --log_dir ../experiments/${sample}/ \
+        --save "test_nyu" \
+        --save_result_only
+done

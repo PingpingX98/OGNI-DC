@@ -397,14 +397,19 @@ def test(args):
     #metric = DCMetric(args)
     metric_new = DCMetricnew(args)
 
+    # try:
+    #     os.makedirs(args.save_dir, exist_ok=True)
+    #     os.makedirs(args.save_dir + '/test', exist_ok=True)
+    # except OSError:
+    #     pass
     try:
-        os.makedirs(args.save_dir, exist_ok=True)
-        os.makedirs(args.save_dir + '/test', exist_ok=True)
+        os.makedirs(args.log_dir, exist_ok=True)
+        os.makedirs(args.log_dir + '/test', exist_ok=True)
     except OSError:
         pass
 
     #writer_test = summ(args.save_dir, 'test', args, None, metric.metric_name)
-    writer_test_new = summ_new(args.save_dir, 'test', args, None, metric_new.metric_name)
+    writer_test_new = summ_new(args.log_dir, 'test', args, None, metric_new.metric_name)
 
     net.eval()
 

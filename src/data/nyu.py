@@ -1,21 +1,6 @@
-
-"""
-    Non-Local Spatial Propagation Network for Depth Completion
-    Jinsun Park, Kyungdon Joo, Zhe Hu, Chi-Kuei Liu and In So Kweon
-
-    European Conference on Computer Vision (ECCV), Aug 2020
-
-    Project Page : https://github.com/zzangjinsun/NLSPN_ECCV20
-    Author : Jinsun Park (zzangjinsun@kaist.ac.kr)
-
-    ======================================================================
-
-    NYU Depth V2 Dataset Helper
-"""
-
-
 import os
 import warnings
+
 import numpy as np
 import json
 import h5py
@@ -25,7 +10,8 @@ from PIL import Image
 import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
-from .noisedata import add_noise, diff_level_noise
+from   .nyu_sample import uniform_sample3
+from .noisedata import diff_level_noise, diff_level_noise_mul
 warnings.filterwarnings("ignore", category=UserWarning)
 
 """
@@ -52,45 +38,58 @@ NYUDepthV2 json file has a following format:
 Reference : https://github.com/XinJCheng/CSPN/blob/master/nyu_dataset_loader.py
 """
 
-
 class NYU(BaseDataset):
-    def __init__(self, args, mode):
+    def __init__(self, args, mode, num_mask = 1):
         super(NYU, self).__init__(args, mode)
 
         self.args = args
         self.mode = mode
-
+        self.num_mask = num_mask
+        
         if mode != 'train' and mode != 'val' and mode != 'test':
             raise NotImplementedError
 
         # For NYUDepthV2, crop size is fixed
-        height, width = (240, 320)
+        # height, width = (240, 320)
+        # crop_size = (228, 304)
+         height, width = (240, 320)
         # height, width = (256, 320)
         crop_size = (228, 304)
-        # crop_size = (256, 320)
 
         self.height = height
         self.width = width
         self.crop_size = crop_size
 
         # Camera intrinsics [fx, fy, cx, cy]
+        """
         self.K = torch.Tensor([
             5.1885790117450188e+02 / 2.0,
             5.1946961112127485e+02 / 2.0,
             3.2558244941119034e+02 / 2.0 - 8.0,
             2.5373616633400465e+02 / 2.0 - 6.0
         ])
+        """
+        self.K = torch.Tensor([
+            [5.1885790117450188e+02 / 2.0, 0, 3.2558244941119034e+02 / 2.0 - 8.0],
+            [0, 5.1946961112127485e+02 / 2.0, 2.5373616633400465e+02 / 2.0 - 6.0],
+            [0, 0, 1]
+        ])
+
+        # print(f"the shape of  self.K is {self.K.shape}" )
 
         self.augment = self.args.augment
 
+        data_mode = mode
         with open(self.args.split_json) as json_file:
             json_data = json.load(json_file)
-            self.sample_list = json_data[mode]
+            self.sample_list = json_data[data_mode]
 
     def __len__(self):
-        return len(self.sample_list)
+        return self.num_mask*len(self.sample_list)
 
     def __getitem__(self, idx):
+        seed = idx % self.num_mask
+        idx = idx // self.num_mask
         path_file = os.path.join(self.args.dir_data,
                                  self.sample_list[idx]['filename'])
 
@@ -103,7 +102,7 @@ class NYU(BaseDataset):
 
         if self.augment and self.mode == 'train':
             _scale = np.random.uniform(1.0, 1.5)
-            scale = np.int(self.height * _scale)
+            scale = int(self.height * _scale)
             degree = np.random.uniform(-5.0, 5.0)
             flip = np.random.uniform(0.0, 1.0)
 
@@ -157,14 +156,16 @@ class NYU(BaseDataset):
 
             K = self.K.clone()
 
-        dep_sp = self.get_sparse_depth(dep, self.args.num_sample)
-        # if self.args.add_noise:
-        #     dep_sp, noise_info = add_noise(dep_sp, noise_type=self.args.noise_type)
-        # else:
-        #     noise_info = None
-        if self.args.add_noise:
-            dep_sp = diff_level_noise(dep_sp, mask=None, noise_level=self.args.noise_level)
-        
+        num_sample = self.args.num_sample
+        if num_sample < 1:
+            dep_sp = torch.zeros_like(dep)
+        else:
+            # dep_sp = self.get_sparse_depth(dep, num_sample)
+            dep_sp = self.mask_sparse_depth(dep, self.args.num_sample, seed)
+        # dep_sp, noise_info = diff_level_noise(dep_sp, mask=None, noise_level=self.args.noise_level)
+        dep_sp= diff_level_noise_mul(dep_sp, mask=None, noise_level=self.args.noise_level)
+        # print(f"noise info is {noise_info}")   
+
         output = {'rgb': rgb, 'dep': dep_sp, 'gt': dep, 'K': K}
 
         return output
@@ -177,6 +178,7 @@ class NYU(BaseDataset):
         idx_nnz = torch.nonzero(dep.view(-1) > 0.0001, as_tuple=False)
 
         num_idx = len(idx_nnz)
+
         idx_sample = torch.randperm(num_idx)[:num_sample]
 
         idx_nnz = idx_nnz[idx_sample[:]]
@@ -187,4 +189,15 @@ class NYU(BaseDataset):
 
         dep_sp = dep * mask.type_as(dep)
 
+        return dep_sp
+    
+    def mask_sparse_depth(self, dep, num_sample, seed):
+        channel, height, width = dep.shape
+        dep = dep.numpy().reshape(-1)
+        np.random.seed(seed)
+        index = np.random.choice(height * width, num_sample, replace=False)
+        dep_sp = np.zeros_like(dep)
+        dep_sp[index] = dep[index]
+        dep_sp = dep_sp.reshape(channel, height, width)
+        dep_sp = torch.from_numpy(dep_sp)
         return dep_sp

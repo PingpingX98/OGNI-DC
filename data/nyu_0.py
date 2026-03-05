@@ -64,10 +64,10 @@ class NYU(BaseDataset):
             raise NotImplementedError
 
         # For NYUDepthV2, crop size is fixed
-        # height, width = (240, 320)
-        height, width = (256, 320)
-        # crop_size = (228, 304)
-        crop_size = (256, 320)
+        height, width = (240, 320)
+        # height, width = (256, 320)
+        crop_size = (228, 304)
+        # crop_size = (256, 320)
 
         self.height = height
         self.width = width
@@ -162,8 +162,9 @@ class NYU(BaseDataset):
         #     dep_sp, noise_info = add_noise(dep_sp, noise_type=self.args.noise_type)
         # else:
         #     noise_info = None
-        dep_sp, noise_info = diff_level_noise(dep_sp, mask=None, noise_level=self.args.noise_level)
-        print(f"noise info is {noise_info}")
+        if self.args.add_noise:
+            dep_sp = diff_level_noise(dep_sp, mask=None, noise_level=self.args.noise_level)
+        
         output = {'rgb': rgb, 'dep': dep_sp, 'gt': dep, 'K': K}
 
         return output

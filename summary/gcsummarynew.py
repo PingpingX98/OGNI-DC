@@ -284,9 +284,9 @@ class OGNIDCSummarynew(BaseSummary):
     def save(self, epoch, idx, sample, output, id_in_batch=0):
         with torch.no_grad():
             if self.args.save_result_only:
-                self.path_output = '{}/{}/epoch{:04d}'.format(self.log_dir,
-                                                              self.mode, epoch)
-                
+                # self.path_output = '{}/{}/epoch{:04d}'.format(self.log_dir,
+                #                                               self.mode, epoch)
+                self.path_output = self.log_dir
                 os.makedirs(self.path_output, exist_ok=True)
                 path_save_pred = os.path.join(self.path_output, 'depth')
                 path_save_color = os.path.join(self.path_output, 'depthcolor')
@@ -302,7 +302,8 @@ class OGNIDCSummarynew(BaseSummary):
                 pred = pred[0, 0, :, :].data.cpu().numpy()
 
                 pred = (pred*256.0).astype(np.uint16)
-                color_depth = self.ColorizeNew(pred, norm_type='LogNorm', offset=1.)
+                # color_depth = self.ColorizeNew(pred, norm_type='LogNorm', offset=1.)
+                color_depth = self.Colorize(pred, min_distance=pred[pred > 0].min(), max_distance=pred.max())
                 imageio.imwrite(path_save_pred, pred)
                 imageio.imwrite(path_save_color, color_depth)
             else:
@@ -408,7 +409,34 @@ class OGNIDCSummarynew(BaseSummary):
                     f'Total_benchmark={t_bench_total:.6f}\n')
 
         self.flush()    
-                    
+
+    def Colorize(self, depth, min_distance=None, max_distance=None, radius=None, norm_type='LogNorm', cmap=mcm.jet):
+    # norm = colors.Normalize(vmin=min_distance, vmax=max_distance)
+    # norm = colors.Normalize(vmin=min_distance, vmax=max_distance,clip=True)
+        Norm = getattr(colors, norm_type)
+        if min_distance == max_distance:
+            min_distance = 1e-5
+        if norm_type == 'PowerNorm':
+            norm = Norm(vmin=min_distance, vmax=max_distance, clip=True, gamma=0.5)
+        else:
+            norm = Norm(vmin=min_distance, vmax=max_distance, clip=True)
+        # norm = colors.LogNorm(vmin=min_distance, vmax=max_distance,clip=False)
+        # norm = colors.PowerNorm(gamma=1. / 2.),
+        cmap = cmap
+        # cmap = cm.gray
+        m = mcm.ScalarMappable(norm=norm, cmap=cmap)
+        if radius == None:
+            depth_color = (255 * m.to_rgba(depth)[:, :, 0:3]).astype(np.uint8)
+            # depth_color[depth <= 0] = [0, 0, 0]
+            # depth_color[np.isnan(depth)] = [0, 0, 0]
+            # depth_color[depth == np.inf] = [0, 0, 0]
+        else:
+            pos = np.argwhere(depth > 0)
+            depth_color = np.zeros((depth.shape[0], depth.shape[1], 3), dtype=np.uint8)
+            for i in range(pos.shape[0]):
+                color = tuple([int(255 * value) for value in m.to_rgba(depth[pos[i, 0], pos[i, 1]])[0:3]])
+                cv2.circle(depth_color, (pos[i, 1], pos[i, 0]), radius, (color[0], color[1], color[2]), -1)
+        return depth_color                
     
                 
                 

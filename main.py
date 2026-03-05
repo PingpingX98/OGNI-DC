@@ -397,14 +397,19 @@ def test(args):
     #metric = DCMetric(args)
     metric_new = DCMetricnew(args)
 
+    # try:
+    #     os.makedirs(args.save_dir, exist_ok=True)
+    #     os.makedirs(args.save_dir + '/test', exist_ok=True)
+    # except OSError:
+    #     pass
     try:
-        os.makedirs(args.save_dir, exist_ok=True)
-        os.makedirs(args.save_dir + '/test', exist_ok=True)
+        os.makedirs(args.log_dir, exist_ok=True)
+        os.makedirs(args.log_dir + '/test', exist_ok=True)
     except OSError:
         pass
 
     #writer_test = summ(args.save_dir, 'test', args, None, metric.metric_name)
-    writer_test_new = summ_new(args.save_dir, 'test', args, None, metric_new.metric_name)
+    writer_test_new = summ_new(args.log_dir, 'test', args, None, metric_new.metric_name)
 
     net.eval()
 
@@ -418,7 +423,11 @@ def test(args):
     for batch, sample in enumerate(loader_test):
         sample = {key: val.cuda() for key, val in sample.items()
                   if val is not None}
-
+        if args.test_single:
+            if batch < 111:
+                continue
+            if batch > 111:
+                break
         t0 = time.time()
         with torch.no_grad():
             output = net(sample)

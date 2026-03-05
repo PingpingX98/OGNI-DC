@@ -11,7 +11,7 @@ import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 from   .nyu_sample import uniform_sample3
-from .noisedata import diff_level_noise
+from .noisedata import diff_level_noise, diff_level_noise_mul
 warnings.filterwarnings("ignore", category=UserWarning)
 
 """
@@ -50,7 +50,10 @@ class NYU(BaseDataset):
             raise NotImplementedError
 
         # For NYUDepthV2, crop size is fixed
+        # height, width = (240, 320)
+        # crop_size = (228, 304)
         height, width = (240, 320)
+        # height, width = (256, 320)
         crop_size = (228, 304)
 
         self.height = height
@@ -159,8 +162,9 @@ class NYU(BaseDataset):
         else:
             # dep_sp = self.get_sparse_depth(dep, num_sample)
             dep_sp = self.mask_sparse_depth(dep, self.args.num_sample, seed)
-        dep_sp, noise_info = diff_level_noise(dep_sp, mask=None, noise_level=self.args.noise_level)
-        print(f"noise info is {noise_info}")   
+        # dep_sp, noise_info = diff_level_noise(dep_sp, mask=None, noise_level=self.args.noise_level)
+        # dep_sp= diff_level_noise_mul(dep_sp, mask=None, noise_level=self.args.noise_level)
+        # print(f"noise info is {noise_info}")   
 
         output = {'rgb': rgb, 'dep': dep_sp, 'gt': dep, 'K': K}
 

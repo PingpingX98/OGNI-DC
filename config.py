@@ -326,6 +326,11 @@ parser.add_argument('--save_pointcloud_visualization',
                     action='store_true',
                     default=False,
                     help='save pointcloud in ply format')
+
+parser.add_argument('--test_single',
+                    action='store_true',
+                    default=False,
+                    help='save pointcloud in ply format')
 # noise
 parser.add_argument('--add_noise',
                      action='store_true', 

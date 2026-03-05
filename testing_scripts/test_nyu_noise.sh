@@ -8,7 +8,7 @@ ckpt=/home/descfly/Projects/OGNI-DC-main/src/checkpoints/NYU_best_performance.pt
 # for sample in 1 5 50 100 200 500 1000 5000 20000
 # for sample in 1 5 50 100
 # for sample in 300 400
-for noise_level in 1 0.5 0.01
+for noise_level in 0.04 0.03 0.02 0.01
 
 do
 python main.py --dir_data /home/descfly/data/nyudepthv2 --data_name NYU --split_json ../data_json/nyu.json \

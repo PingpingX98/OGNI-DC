@@ -3,7 +3,7 @@ test_augment=0
 optim_layer_input_clamp=1.0
 depth_activation_format='exp'
 ckpt=../checkpoints/NYU_best_performance.pt
-
+num_masks=100
 # for sample in 5 50 100 200 300 400 500 
 # for sample in 1 5 50 100 200 500 1000 5000 20000
 # for sample in 1 5 50 100
@@ -28,6 +28,7 @@ do
         --GRU_iters $GRU_iters --optim_layer_input_clamp $optim_layer_input_clamp --depth_activation_format $depth_activation_format \
         --test_only --test_augment $test_augment --pretrain $ckpt \
         --log_dir ../experiments/${sample}/ \
+        --num_masks ${num_masks}
         --save "test_nyu" \
 #        --save_result_only --test_single
 done

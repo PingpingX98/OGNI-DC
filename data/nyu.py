@@ -39,12 +39,12 @@ Reference : https://github.com/XinJCheng/CSPN/blob/master/nyu_dataset_loader.py
 """
 
 class NYU(BaseDataset):
-    def __init__(self, args, mode, num_mask = 8):
+    def __init__(self, args, mode):
         super(NYU, self).__init__(args, mode)
 
         self.args = args
         self.mode = mode
-        self.num_mask = num_mask
+        self.num_masks = num_masks
         
         if mode != 'train' and mode != 'val' and mode != 'test':
             raise NotImplementedError
@@ -85,11 +85,11 @@ class NYU(BaseDataset):
             self.sample_list = json_data[data_mode]
 
     def __len__(self):
-        return self.num_mask*len(self.sample_list)
+        return self.num_masks*len(self.sample_list)
 
     def __getitem__(self, idx):
-        seed = idx % self.num_mask
-        idx = idx // self.num_mask
+        seed = idx % self.num_masks
+        idx = idx // self.num_masks
         path_file = os.path.join(self.args.dir_data,
                                  self.sample_list[idx]['filename'])
 

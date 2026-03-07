@@ -25,6 +25,8 @@ services:
       - ./:/root/ognidc
       - /mnt/data/nyudepthv2:/root/ognidc/datas/nyudepthv2
       - /mnt/checkpoints/ognidc:/root/ognidc/checkpoints
+      - /mnt/data/void_release:/root/ognidc/datas/void
+
       # - /home/jie/data/NYUV2_depth/nyudepthv2:/root/NEAT/datas/nyudepthv2
     working_dir: /root/ognidc
 

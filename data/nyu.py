@@ -44,7 +44,7 @@ class NYU(BaseDataset):
 
         self.args = args
         self.mode = mode
-        self.num_masks = num_masks
+        self.num_masks = args.num_masks
         
         if mode != 'train' and mode != 'val' and mode != 'test':
             raise NotImplementedError

@@ -443,9 +443,10 @@ def test(args):
         sample = {key: val.cuda() for key, val in sample.items()
                   if val is not None}
         if args.test_single:
-            if batch < 111:
+            single_idx = 263
+            if batch < single_idx * args.num_masks:
                 continue
-            if batch > 111:
+            if batch > (single_idx + 1) * args.num_masks:
                 break
         t0 = time.time()
         with torch.no_grad():
@@ -560,14 +561,16 @@ def test_noisy(args):
     t_total = 0
 
     init_seed()
+
     for batch, sample in enumerate(loader_test):
         sample = {key: val.cuda() for key, val in sample.items()
                   if val is not None}
         sample['dep'] = diff_level_noise_mul(sample['dep'], noise_level=args.noise_level)
         if args.test_single:
-            if batch < 111:
+            single_idx = 392
+            if batch < single_idx * args.num_masks:
                 continue
-            if batch > 111:
+            if batch > (single_idx + 1) * args.num_masks:
                 break
         t0 = time.time()
         with torch.no_grad():

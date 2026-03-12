@@ -34,7 +34,7 @@ parser.add_argument('--top_crop',
                     default=0,
                     help='top crop size for KITTI dataset')
 parser.add_argument('--num_masks',
-                    type=float,
+                    type=int,
                     default=1,
                     help='Add noise to sparse depth')
 

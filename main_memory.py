@@ -77,6 +77,7 @@ def test(args):
     data = get_data(args)
 
     data_test = data(args, 'test')
+    # torch.cuda.reset_max_memory_allocated(device=0)
 
     loader_test = DataLoader(dataset=data_test, batch_size=1,
                              shuffle=False, num_workers=args.num_threads)
@@ -94,7 +95,8 @@ def test(args):
     else:
         raise TypeError(args.model, ['OGNIDC', ])
     net.cuda()
-
+    peak_memory_usage = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
+    print(f"Peak memory usage: {peak_memory_usage:.3f} GB")
     if args.pretrain is not None:
         assert os.path.exists(args.pretrain), \
             "file not found: {}".format(args.pretrain)
@@ -135,21 +137,24 @@ def test(args):
     t_total = 0
     times = []
     init_seed()
-    torch.cuda.reset_max_memory_allocated(device=0)
-    peak_memory = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
-    print(f"Peak memory usage: {peak_memory_usage:.3f} GB")
-    for batch, sample in enumerate(loader_test):
-        sample = {key: val.cuda() for key, val in sample.items() if val is not None}
+    with torch.no_grad():
         torch.cuda.reset_max_memory_allocated(device=0)
-        output = net(sample)
-        memory_allocated = torch.cuda.memory_allocated(device=0) / 1024 ** 3  # Convert to GB
-        print(f"Memory allocated: {memory_allocated:.3f} GB")
-
-        # Optionally, measure peak memory usage during profiling
         peak_memory_usage = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
         print(f"Peak memory usage: {peak_memory_usage:.3f} GB")
-        if batch > 6:
-            break
+        torch.cuda.reset_max_memory_allocated(device=0)
+
+        peak_memory_usage1 = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
+        print(f"Peak memory usage: {peak_memory_usage1:.3f} GB")
+        for batch, sample in enumerate(loader_test):
+            sample = {key: val.cuda() if isinstance(val, torch.Tensor) else val for key, val in sample.items()}
+            torch.cuda.reset_max_memory_allocated(device=0)
+
+            output = net(sample)
+            peak_memory_usage = torch.cuda.max_memory_allocated(device=0) / 1024 ** 3
+            print(f"Peak memory usage: {peak_memory_usage:.3f} GB")
+            if batch > 6:
+                break
+        print(f"Peak memory usage: {peak_memory_usage-peak_memory_usage1:.3f} GB")
         
 
 def main(args):
